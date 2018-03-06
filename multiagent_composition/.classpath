@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry excluding="*.asl" kind="src" path="src/asl"/>
+	<classpathentry kind="src" path="src/java"/>
+	<classpathentry kind="lib" path="/home/braem/Documents/jason-2.2a/libs/jason-2.2.jar"/>
+	<classpathentry kind="lib" path="lib/jMusic1.6.5.jar"/>
+	<classpathentry kind="output" path="bin/classes"/>
+</classpath>

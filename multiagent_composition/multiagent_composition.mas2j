@@ -1,0 +1,10 @@
+MAS multiagent_composition {
+
+	infrastructure: Centralised
+
+	agents:
+		bassAgent bassAgent;
+
+	aslSourcePath:
+		"src/asl";
+}
