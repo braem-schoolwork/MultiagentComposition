@@ -1,9 +1,12 @@
 MAS multiagent_composition {
 
 	infrastructure: Centralised
+	
+	environment: Composition
 
 	agents:
 		bassAgent bassAgent;
+		sopranoAgent sopranoAgent;
 
 	aslSourcePath:
 		"src/asl";

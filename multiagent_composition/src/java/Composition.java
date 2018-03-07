@@ -2,16 +2,20 @@ import jason.asSyntax.*;
 import jason.environment.*;
 import jason.environment.grid.Location;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.*;
 
+import jm.JMC;
+import jm.music.data.*;
+import jm.util.*;
 
 public class Composition extends Environment {
 	private Logger logger = Logger.getLogger("MAC"+Composition.class.getName());
     
     private static final Literal placeNote = Literal.parseLiteral("placeNote");
     
-    Model model;
+    static Model model;
     
     /** Called before the MAS execution with the args informed in .mas2j */
     @Override
@@ -24,6 +28,8 @@ public class Composition extends Environment {
     /** Called before the end of MAS execution */
     @Override
     public void stop() {
+    	//write composition to midi
+    	Model.writeToMIDI();
         super.stop();
     }
 
@@ -31,9 +37,13 @@ public class Composition extends Environment {
     public boolean executeAction(String agName, Structure action) {
         
     	boolean result = false;
+        int agentID = 0;
+        if (agName.equals("tenorAgent")) agentID=1;
+        if (agName.equals("altoAgent")) agentID=2;
+        if (agName.equals("sopranoAgent")) agentID=3;
     	
     	if (action.equals(placeNote))
-    		result = model.placeNote();
+    		result = model.placeNote(agentID, -1);
     	else
     		logger.info("executing: "+action+", but not implemented!");
     	
@@ -47,19 +57,47 @@ public class Composition extends Environment {
     
     private void updatePercepts() {
     	clearPercepts();
+
+    	int note = Model.phrases[Parameters.BASS].getNote(model.bassIndex).getPitch();
+    	addPercept("bassAgent", Literal.parseLiteral("prevNote(" + note + ")"));
     	
-    	/*
-    	Location loc = model.getAgPos(0);
-    	addPercept(Literal.parseLiteral("position(" + loc.x + ", " + loc.y +")"));
+    	double pos = model.bassPosition;
+    	addPercept("bassAgent", Literal.parseLiteral("position(" + pos + ")"));
     	
-    	List<Location> dirts = model.getDirtLocations();
-    	for (int i=0; i<dirts.size(); i++) {
-    		addPercept(Literal.parseLiteral("dirt(" + dirts.get(i).x + ", " + dirts.get(i).y + ")"));
+    	ArrayList<Integer> pastNotes = model.getPastNotes(Parameters.BASS);
+    	addPercept("bassAgent", Literal.parseLiteral("pastNotes(" + pastNotes + ")"));
+    	
+    	if(Parameters.NUM_AGENTS > 1) {
+    		note = Model.phrases[Parameters.SOPRANO].getNote(model.sopranoIndex).getPitch();
+        	addPercept("sopranoAgent", Literal.parseLiteral("prevNote(" + note + ")"));
+        	
+        	pos = model.sopranoPosition;
+        	addPercept("sopranoAgent", Literal.parseLiteral("position(" + pos + ")"));
+        	
+        	pastNotes = model.getPastNotes(Parameters.SOPRANO);
+        	addPercept("sopranoAgent", Literal.parseLiteral("pastNotes(" + pastNotes + ")"));
     	}
     	
-    	//agent perceives the grid dimensions
-    	addPercept(Literal.parseLiteral("gridwidth(" + model.getGridWidth() + ")"));
-    	addPercept(Literal.parseLiteral("gridheight(" + model.getGridHeight() + ")"));  
-    	*/  	
+    	if(Parameters.NUM_AGENTS > 2) {
+    		note = Model.phrases[Parameters.ALTO].getNote(model.altoIndex).getPitch();
+        	addPercept("altoAgent", Literal.parseLiteral("prevNote(" + note + ")"));
+        	
+        	pos = model.altoPosition;
+        	addPercept("altoAgent", Literal.parseLiteral("position(" + pos + ")"));
+        	
+        	pastNotes = model.getPastNotes(Parameters.ALTO);
+        	addPercept("altoAgent", Literal.parseLiteral("pastNotes(" + pastNotes + ")"));
+    	}
+    	
+    	if(Parameters.NUM_AGENTS > 3) {
+    		note = Model.phrases[Parameters.TENOR].getNote(model.tenorIndex).getPitch();
+        	addPercept("tenorAgent", Literal.parseLiteral("prevNote(" + note + ")"));
+        	
+        	pos = model.tenorPosition;
+        	addPercept("tenorAgent", Literal.parseLiteral("position(" + pos + ")"));
+        	
+        	pastNotes = model.getPastNotes(Parameters.TENOR);
+        	addPercept("tenorAgent", Literal.parseLiteral("pastNotes(" + pastNotes + ")"));
+    	}	
     }
 }
