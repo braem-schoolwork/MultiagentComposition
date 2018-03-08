@@ -5,7 +5,7 @@
 
 //place note action
 +!place:	prevNote(X) & position(Y) & pastNotes(Z)
-<-			.print("previous note: ",X,", position: ",Y,"past notes: ",Z)
+<-			//.print("previous note: ",X,", position: ",Y,"past notes: ",Z)
 			placeNote;
 			!place
 .

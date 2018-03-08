@@ -87,8 +87,32 @@ public class Model implements JMC {
 		Write.midi(score, "MAC.mid");
 	}
 	
+	int getInterval(int lower, int upper) {
+		return (upper-lower)%12;
+	}
+	Sounding getSounding(int interval) {
+		switch(interval) {
+		case Parameters.UNISON: return Sounding.PERFECT_CONSONANCE;
+		case Parameters.m2nd: return Sounding.SHARP_DISSONANCE;
+		case Parameters.M2nd: return Sounding.MILD_DISSONANCE;
+		case Parameters.m3rd: return Sounding.IMPERFECT_CONSONANCE;
+		case Parameters.M3rd: return Sounding.IMPERFECT_CONSONANCE;
+		case Parameters.P4th: return Sounding.PERFECT_CONSONANCE;
+		case Parameters.TRITONE: return Sounding.SHARP_DISSONANCE;
+		case Parameters.P5th: return Sounding.PERFECT_CONSONANCE;
+		case Parameters.m6th: return Sounding.IMPERFECT_CONSONANCE;
+		case Parameters.M6th: return Sounding.IMPERFECT_CONSONANCE;
+		case Parameters.m7th: return Sounding.MILD_DISSONANCE;
+		case Parameters.M7th: return Sounding.SHARP_DISSONANCE;
+		default: {
+			System.err.println("Bad Interval");
+			return null;
+		}
+		}
+	}
+	
 	int selectNextNote(int agentID, int horiz, int vertical) {
-		Random r = new Random();
+		//get lower and upper bounds of the part
 		int randomNote, upperbound, lowerbound;
 		switch(agentID) {
 		case Parameters.BASS: 
@@ -108,25 +132,143 @@ public class Model implements JMC {
 			lowerbound = Parameters.SOPRANO_LOWER;
 			break;
 		}
+		
+		//decide which sounding to target
+		Sounding targetSounding;
+		float probPC, probIC, probMD, probSD;
+		probPC = Parameters.PC_PROB;
+		probIC = Parameters.IC_PROB;
+		probMD = Parameters.MD_PROB;
+		probSD = Parameters.SD_PROB;
+		//get accumulative probabilities
+		probIC += probPC;
+		probMD += probIC;
+		probSD += probMD;
+		double randomNum = Math.random(); //between 0 and 1
+		if(randomNum < probPC) {
+			targetSounding = Sounding.PERFECT_CONSONANCE;
+		}
+		else if(randomNum >= probPC && randomNum < probIC) {
+			targetSounding = Sounding.IMPERFECT_CONSONANCE;
+		}
+		else if(randomNum >= probIC && randomNum < probMD) {
+			targetSounding = Sounding.MILD_DISSONANCE;
+		}
+		else if(randomNum >= probMD && randomNum < probSD) {
+			targetSounding = Sounding.SHARP_DISSONANCE;
+		}
+		else { targetSounding = Sounding.IMPERFECT_CONSONANCE; }
+		
+		Random r = new Random();
 		randomNote = r.nextInt(upperbound - lowerbound) + lowerbound + 1;
-		return randomNote;
-		/*
 		//know horizontal and vertical notes
 		if(horiz >= 0 && vertical >= 0) {
-			
+			//get soundings of every note
+			ArrayList<Integer> awesomeNotes = new ArrayList<Integer>();
+			ArrayList<Integer> okayNotes = new ArrayList<Integer>();
+			for(int i=lowerbound, j=0; i<upperbound; i++, j++) {
+				int pastInterval = (i <= horiz)? 
+						getInterval(i, horiz): getInterval(horiz, i);
+				int vertInterval = (i <= vertical)?
+						getInterval(i, vertical): getInterval(vertical, i);
+				Sounding pastIntervalSounding = getSounding(pastInterval);
+				Sounding vertIntervalSounding = getSounding(vertInterval);
+				if(pastIntervalSounding.equals(targetSounding) &&
+						vertIntervalSounding.equals(targetSounding)) {
+					awesomeNotes.add(i);
+				}
+				else if(pastIntervalSounding.equals(targetSounding)) {
+					okayNotes.add(i);
+				}
+				else if(vertIntervalSounding.equals(targetSounding)) {
+					okayNotes.add(i);
+				}
+			}
+			//get the note closest to the previous note
+			int closestDistance = Integer.MAX_VALUE;
+			int closestNote = -1;
+			for(int i=0; i<awesomeNotes.size(); i++) {
+				int horizNote = awesomeNotes.get(i);
+				int distance = (horiz > horizNote)?
+						horiz-horizNote: horizNote-horiz;
+				if(distance < closestDistance) {
+					closestDistance = distance;
+					closestNote = horizNote;
+				}
+			}
+			if(closestNote == -1) { //no awesome notes => check okay notes
+				for(int i=0; i<okayNotes.size(); i++) {
+					int horizNote = okayNotes.get(i);
+					int distance = (horiz > horizNote)?
+							horiz-horizNote: horizNote-horiz;
+					if(distance < closestDistance) {
+						closestDistance = distance;
+						closestNote = horizNote;
+					}
+				}
+			}
+			System.out.println(":) " + closestNote);
+			//try { Thread.sleep(5000); } catch (InterruptedException x) { }
+			//add the closest note
+			return (closestNote > 0) ? closestNote : randomNote;
 		}
 		//know only horizontal note
 		else if(horiz >= 0) {
-			
+			//get soundings of every note
+			ArrayList<Integer> possibleNotes = new ArrayList<Integer>();
+			for(int i=lowerbound, j=0; i<upperbound; i++, j++) {
+				int pastInterval = (i <= horiz)? 
+						getInterval(i, horiz): getInterval(horiz, i);
+				Sounding pastIntervalSounding = getSounding(pastInterval);
+				if(pastIntervalSounding.equals(targetSounding)) {
+					possibleNotes.add(i);
+				}
+			}
+			//get the note closest to the previous note
+			int closestDistance = Integer.MAX_VALUE;
+			int closestNote = -1;
+			for(int i=0; i<possibleNotes.size(); i++) {
+				int horizNote = possibleNotes.get(i);
+				int distance = (horiz > horizNote)?
+						horiz-horizNote: horizNote-horiz;
+				if(distance < closestDistance) {
+					closestDistance = distance;
+					closestNote = horizNote;
+				}
+			}
+			return (closestNote > 0) ? closestNote : randomNote;
 		}
 		//know only vertical note
 		else if(vertical >= 0){
-			
+			//get soundings of every note
+			ArrayList<Integer> possibleNotes = new ArrayList<Integer>();
+			for(int i=lowerbound, j=0; i<upperbound; i++, j++) {
+				int vertInterval = (i <= vertical)? 
+						getInterval(i, vertical): getInterval(vertical, i);
+				Sounding vertIntervalSounding = getSounding(vertInterval);
+				if(vertIntervalSounding.equals(targetSounding)) {
+					possibleNotes.add(i);
+				}
+			}
+			//get the note closest to the previous note
+			int closestDistance = Integer.MAX_VALUE;
+			int closestNote = -1;
+			for(int i=0; i<possibleNotes.size(); i++) {
+				int horizNote = possibleNotes.get(i);
+				int distance = (horiz > horizNote)?
+						horiz-horizNote: horizNote-horiz;
+				if(distance < closestDistance) {
+					closestDistance = distance;
+					closestNote = horizNote;
+				}
+			}
+			return (closestNote > 0) ? closestNote : randomNote;
 		}
-		//dont know either.. just pick a random note
+		//dont know either.. just pick a random note. Should not come here
 		else {
+			return randomNote;
 		}
-		*/
+
 	}
 	
 	ArrayList<Integer> getPastNotes(int agentID) {
@@ -202,7 +344,6 @@ public class Model implements JMC {
 		}
 		else {
 			System.err.println("Bad Duration Probability Algorithm");
-			System.exit(1);
 			return -1;
 		}
 	}

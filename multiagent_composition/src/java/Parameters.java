@@ -11,6 +11,25 @@ public final class Parameters {
 	//music related
 	public static final int BPM = 100;
 	
+	public static final int UNISON = 0;
+	public static final int m2nd = 1;
+	public static final int M2nd = 2;
+	public static final int m3rd = 3;
+	public static final int M3rd = 4;
+	public static final int P4th = 5;
+	public static final int TRITONE = 6;
+	public static final int P5th = 7;
+	public static final int m6th = 8;
+	public static final int M6th = 9;
+	public static final int m7th = 10;
+	public static final int M7th = 11;
+	public static final int OCTAVE = 12;
+	
+	public static final float PC_PROB = 0.1f;
+	public static final float IC_PROB = 0.6f;
+	public static final float MD_PROB = 0.2f;
+	public static final float SD_PROB = 0.1f;
+	
 	//part ranges
 	public static final int BASS_LOWER = 38;
 	public static final int BASS_UPPER = 60;

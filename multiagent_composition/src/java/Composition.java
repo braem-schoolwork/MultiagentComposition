@@ -43,7 +43,7 @@ public class Composition extends Environment {
         if (agName.equals("sopranoAgent")) agentID=3;
     	
     	if (action.equals(placeNote))
-    		result = model.placeNote(agentID, -1);
+    		result = model.placeNote(agentID, 60);
     	else
     		logger.info("executing: "+action+", but not implemented!");
     	
