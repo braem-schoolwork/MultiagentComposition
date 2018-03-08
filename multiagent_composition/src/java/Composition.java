@@ -37,10 +37,11 @@ public class Composition extends Environment {
     public boolean executeAction(String agName, Structure action) {
         
     	boolean result = false;
-        int agentID = 0;
-        if (agName.equals("tenorAgent")) agentID=1;
-        if (agName.equals("altoAgent")) agentID=2;
-        if (agName.equals("sopranoAgent")) agentID=3;
+    	int agentID = -1;
+        if (agName.equals("bassAgent")) agentID=Parameters.BASS;
+        if (agName.equals("tenorAgent")) agentID=Parameters.TENOR;
+        if (agName.equals("altoAgent")) agentID=Parameters.ALTO;
+        if (agName.equals("sopranoAgent")) agentID=Parameters.SOPRANO;
     	
     	if (action.equals(placeNote))
     		result = model.placeNote(agentID, 60);
@@ -49,7 +50,13 @@ public class Composition extends Environment {
     	
     	if (result) {
     		updatePercepts();
-    		try { Thread.sleep(800); } catch (InterruptedException x) { }
+    		//control the speed of agents
+    		if(agentID == Parameters.BASS)
+    			try { Thread.sleep(1400); } catch (InterruptedException x) { }
+    		else if(agentID == Parameters.TENOR || agentID == Parameters.ALTO)
+    			try { Thread.sleep(1000); } catch (InterruptedException x) { }
+    		else if(agentID == Parameters.SOPRANO)
+    			try { Thread.sleep(800); } catch (InterruptedException x) { }
     	}
     	
     	return result;
