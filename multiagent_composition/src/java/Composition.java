@@ -74,9 +74,6 @@ public class Composition extends Environment {
     		int waitTime = Integer.parseInt(terms[0].toString());
     		try { Thread.sleep(waitTime); } catch (InterruptedException x) { }
     	}
-    	else if(action.getFunctor().equals("getUserInput")) {
-    		//
-    	}
     	else
     		logger.info("executing: "+action+", but not implemented!");
     	
