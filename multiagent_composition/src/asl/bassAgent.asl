@@ -20,13 +20,27 @@ myturn.
 			!place
 .
 
-+!place:	~myturn
-<-			//wait(100);
++!place:	~myturn & vertNotes(W, L)[source(sopranoAgent)]
+<-			-vertNotes(W, L)[source(sopranoAgent)];
 			!place;
 .
 
 -!place<-	-+~myturn;
-			!place;
+			.send(sopranoAgent, unachieve, place);
+			!tellnotes;
+			.send(sopranoAgent, tell, myturn);
+			.send(sopranoAgent, achieve, place);
+			!gimme;
+.
+
++!tellnotes:pastNotes(X) & pastPositions(Y) & vertNotes(W, L)[source(sopranoAgent)]
+<-			-vertNotes(W, L)[source(sopranoAgent)];
+			.send(sopranoAgent, tell, vertNotes(X, Y));
+.
+
++!tellnotes:pastNotes(X) & pastPositions(Y) 
+<-
+			.send(sopranoAgent, tell, vertNotes(X, Y));
 .
 
 +!gimme:	pastNotes(X) & pastPositions(Y)

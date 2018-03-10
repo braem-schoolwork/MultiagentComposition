@@ -80,9 +80,14 @@ public class Model implements JMC {
 		s = new ShowScore(score);
 	}
 	
-	boolean placeNote(int agentID, List<Integer> vertNotes, List<Double> vertPositions, double position) {
+	synchronized boolean placeNote(int agentID, List<Integer> vertNotes, List<Double> vertPositions, double position) {
 		int vertNote = getNoteAtCurrentTime(vertNotes, vertPositions, position);
 		//System.out.println(vertNote + ", " + vertNotes);
+		if(isAhead(vertPositions,position))  {
+			System.out.println(agentID + " ahead.. " + position + ", " + vertPositions);
+			if(Parameters.GUI) refreshView();
+			return false;
+		}
 		double duration = chooseDuration(agentID);
 		int nextNote;
 		Phrase phr = phrases[agentID];
@@ -147,7 +152,7 @@ public class Model implements JMC {
 	}
 	
 	boolean isAhead(List<Double> vertPositions, double position) {
-		return (position > vertPositions.get(vertPositions.size()-1));
+		return (position > vertPositions.get(0) );
 	}
 	
 	static void writeToMIDI() {

@@ -20,14 +20,29 @@
 			!place
 .
 
-+!place:	~myturn
-<-			//wait(100);
++!place:	~myturn & vertNotes(W, L)[source(bassAgent)]
+<-			-vertNotes(W, L)[source(bassAgent)];
 			!place;
 .
 
 -!place<-	-+~myturn;
-			!place;
+			.send(bassAgent, unachieve, place);
+			!tellnotes;
+			.send(bassAgent, tell, myturn);
+			.send(bassAgent, achieve, place);
+			!gimme;
 .
+
++!tellnotes:pastNotes(X) & pastPositions(Y) & vertNotes(W, L)[source(bassAgent)]
+<-			-vertNotes(W, L)[source(bassAgent)];
+			.send(bassAgent, tell, vertNotes(X, Y));
+.
+
++!tellnotes:pastNotes(X) & pastPositions(Y) 
+<-
+			.send(bassAgent, tell, vertNotes(X, Y));
+.
+
 
 +!gimme:	pastNotes(X) & pastPositions(Y)
 <-			//.print(X);

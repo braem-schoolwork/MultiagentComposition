@@ -68,9 +68,9 @@ public final class Parameters {
 	public static final float ALTO_PROB_8th 	= 0.40f;
 	public static final float ALTO_PROB_16th	= 0.05f;
 	
-	public static final float SOPRANO_PROB_WHOLE 	= 0.1f;
+	public static final float SOPRANO_PROB_WHOLE 	= 0f;
 	public static final float SOPRANO_PROB_HALF 	= 0.1f;
-	public static final float SOPRANO_PROB_QUARTER 	= 0.7f;
-	public static final float SOPRANO_PROB_8th		= 0.1f;
-	public static final float SOPRANO_PROB_16th		= 0f;
+	public static final float SOPRANO_PROB_QUARTER 	= 0.2f;
+	public static final float SOPRANO_PROB_8th		= 0.5f;
+	public static final float SOPRANO_PROB_16th		= 0.2f;
 }
