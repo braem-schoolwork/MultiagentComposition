@@ -8,6 +8,12 @@ public final class Parameters {
 	public static final byte ALTO		= 2;
 	public static final byte SOPRANO 	= 3;
 	
+	//System
+	public static final int SLEEP_AMOUNT = 1000;
+	public static final int CATCHUP_AMOUNT = 500;
+	public static final boolean GUI = true;
+	public static final boolean USER_INPUT = true;
+	
 	//music related
 	public static final int BPM = 100;
 	
@@ -26,9 +32,9 @@ public final class Parameters {
 	public static final int OCTAVE = 12;
 	
 	public static final float PC_PROB = 0.1f;
-	public static final float IC_PROB = 0.6f;
-	public static final float MD_PROB = 0.2f;
-	public static final float SD_PROB = 0.1f;
+	public static final float IC_PROB = 0.75f;
+	public static final float MD_PROB = 0.1f;
+	public static final float SD_PROB = 0.05f;
 	
 	//part ranges
 	public static final int BASS_LOWER = 38;
@@ -62,9 +68,9 @@ public final class Parameters {
 	public static final float ALTO_PROB_8th 	= 0.40f;
 	public static final float ALTO_PROB_16th	= 0.05f;
 	
-	public static final float SOPRANO_PROB_WHOLE 	= 0f;
-	public static final float SOPRANO_PROB_HALF 	= 0.05f;
-	public static final float SOPRANO_PROB_QUARTER 	= 0.05f;
-	public static final float SOPRANO_PROB_8th		= 0.60f;
-	public static final float SOPRANO_PROB_16th		= 0.30f;
+	public static final float SOPRANO_PROB_WHOLE 	= 0.1f;
+	public static final float SOPRANO_PROB_HALF 	= 0.1f;
+	public static final float SOPRANO_PROB_QUARTER 	= 0.7f;
+	public static final float SOPRANO_PROB_8th		= 0.1f;
+	public static final float SOPRANO_PROB_16th		= 0f;
 }

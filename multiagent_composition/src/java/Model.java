@@ -4,6 +4,7 @@ import jason.environment.grid.GridWorldModel;
 import jm.JMC;
 import jm.music.data.*;
 import jm.util.*;
+import jm.gui.show.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,76 +20,151 @@ public class Model implements JMC {
     int altoIndex = 0;
     double sopranoPosition = 0d;
     int sopranoIndex = 0;
+    
+    List<Double> bassPositions = new ArrayList<Double>();
+    List<Double> tenorPositions = new ArrayList<Double>();
+    List<Double> altoPositions = new ArrayList<Double>();
+    List<Double> sopranoPositions = new ArrayList<Double>();
 	
     static Score score = new Score("MAC", Parameters.BPM);	//100bpm
     static Part[] parts = new Part[4];
     static Phrase[] phrases = new Phrase[4];
+    static ShowScore s;
 	
 	public Model() {
 		//create parts
-		parts[0] = new Part("Bass", CELLO, 0);
+		Note n1 = new Note(C3, WHOLE_NOTE);
+		Note n2 = new Note(C4, WHOLE_NOTE);
+		Note n3 = new Note(C5, WHOLE_NOTE);
+		parts[0] = new Part("Bass", PIANO, 0);
 		phrases[0] = new Phrase("BassPhrase", 0.0);
-		phrases[0].addNote(C3, WHOLE_NOTE);
+		phrases[0].addNote(n1);
+		bassPosition+=n1.getDuration();
+		bassPositions.add(n1.getDuration());
 		parts[1] = new Part("Viola", VIOLA, 0);
 		phrases[1] = new Phrase("TenorPhrase", 0.0);
-		phrases[1].addNote(C4, WHOLE_NOTE);
+		phrases[1].addNote(n2);
+		tenorPosition+=n2.getDuration();
+		tenorPositions.add(n2.getDuration());
 		parts[2] = new Part("Violin 2", VIOLIN, 0);
 		phrases[2] = new Phrase("AltoPhrase", 0.0);
-		phrases[2].addNote(C4, WHOLE_NOTE);
-		parts[3] = new Part("Violin 1", VIOLIN, 0);
+		phrases[2].addNote(n2);
+		altoPosition+=n2.getDuration();
+		altoPositions.add(n2.getDuration());
+		parts[3] = new Part("Violin 1", PIANO, 0);
 		phrases[3] = new Phrase("SopranoPhrase", 0.0);
-		phrases[3].addNote(C5, WHOLE_NOTE);
+		phrases[3].addNote(n3);
+		sopranoPosition+=n3.getDuration();
+		sopranoPositions.add(n3.getDuration());
+		if(Parameters.GUI) openView();
 	}
 	
-	boolean placeNote(int agentID, int verticalNote) {
+	static void refreshView() {
+		for(int i=0; i<parts.length; i++) {
+			parts[i].removeAllPhrases();
+			parts[i].add(phrases[i]);
+		}
+		score.removeAllParts();
+		score.addPartList(parts);
+		s.dispose();
+		s = new ShowScore(score);
+	}
+	
+	static void openView() {
+		for(int i=0; i<parts.length; i++) {
+			parts[i].removeAllPhrases();
+			parts[i].add(phrases[i]);
+		}
+		score.removeAllParts();
+		score.addPartList(parts);
+		s = new ShowScore(score);
+	}
+	
+	boolean placeNote(int agentID, List<Integer> vertNotes, List<Double> vertPositions, double position) {
+		int vertNote = getNoteAtCurrentTime(vertNotes, vertPositions, position);
+		//System.out.println(vertNote + ", " + vertNotes);
 		double duration = chooseDuration(agentID);
 		int nextNote;
 		Phrase phr = phrases[agentID];
 		switch(agentID) {
 		case Parameters.BASS: {
 			bassPosition+=duration; 
+			bassPositions.add(bassPosition);
 			nextNote = selectNextNote
-					(agentID, phr.getNote(bassIndex).getPitch(), verticalNote);
+					(agentID, phr.getNote(bassIndex).getPitch(), 
+							vertNote, isAhead(vertPositions, position));
 			bassIndex++;
 		} break;
 		case Parameters.TENOR: {
-			bassPosition+=duration; 
+			tenorPosition+=duration; 
+			tenorPositions.add(tenorPosition);
 			nextNote = selectNextNote
-					(agentID, phr.getNote(tenorIndex).getPitch(), verticalNote);
+					(agentID, phr.getNote(tenorIndex).getPitch(), 
+							vertNote, isAhead(vertPositions, position));
 			tenorIndex++;
 		} break;
 		case Parameters.ALTO: {
-			bassPosition+=duration; 
+			altoPosition+=duration; 
+			altoPositions.add(altoPosition);
 			nextNote = selectNextNote
-					(agentID, phr.getNote(altoIndex).getPitch(), verticalNote);
+					(agentID, phr.getNote(altoIndex).getPitch(), 
+							vertNote, isAhead(vertPositions, position));
 			altoIndex++;
 		} break;
 		case Parameters.SOPRANO: {
-			bassPosition+=duration; 
+			sopranoPosition+=duration; 
+			sopranoPositions.add(sopranoPosition);
 			nextNote = selectNextNote
-					(agentID, phr.getNote(sopranoIndex).getPitch(), verticalNote);
+					(agentID, phr.getNote(sopranoIndex).getPitch(), 
+							vertNote, isAhead(vertPositions, position));
 			sopranoIndex++;
 		} break;
 		default: nextNote = -1;
 		}
-		Note n = new Note(nextNote, duration);
-		phrases[agentID].addNote(n);
-		System.out.println("Pitch: " + n.getPitch() + ", " + n.getDuration());
-		return true;
+		if(nextNote > 0) {
+			Note n = new Note(nextNote, duration);
+			phrases[agentID].addNote(n);
+			if(Parameters.GUI) refreshView();
+			System.out.println("Agent " + agentID + " selects note "+n);
+			return true;
+		}
+		else return false;
 	}
 	
 
 	/*** HELPERS ***/
+	int getNoteAtCurrentTime(List<Integer> vertNotes, List<Double> vertPositions, double position) {
+		if(vertNotes.size() == 1) return vertNotes.get(0);
+		if(vertNotes.size() != vertPositions.size()) return -1;
+		for(int i=0; i<vertNotes.size()-1; i++) {
+			double vertPos1 = vertPositions.get(i);
+			double vertPos2 = vertPositions.get(i+1);
+			if(position <= vertPos1 && position >= vertPos2) {
+				return vertNotes.get(i);
+			}
+		}
+		return -1;
+	}
+	
+	boolean isAhead(List<Double> vertPositions, double position) {
+		return (position > vertPositions.get(vertPositions.size()-1));
+	}
+	
 	static void writeToMIDI() {
 		for(int i=0; i<parts.length; i++) {
+			parts[i].removeAllPhrases();
 			parts[i].add(phrases[i]);
 		}
+		score.removeAllParts();
 		score.addPartList(parts);
 		Write.midi(score, "MAC.mid");
 	}
 	
 	int getInterval(int lower, int upper) {
 		return (upper-lower)%12;
+	}
+	int getDistance(int n1, int n2) {
+		return Math.abs(n2-n1);
 	}
 	Sounding getSounding(int interval) {
 		switch(interval) {
@@ -111,7 +187,7 @@ public class Model implements JMC {
 		}
 	}
 	
-	int selectNextNote(int agentID, int horiz, int vertical) {
+	int selectNextNote(int agentID, int horiz, int vertical, boolean ahead) {
 		//get lower and upper bounds of the part
 		int randomNote, upperbound, lowerbound;
 		switch(agentID) {
@@ -173,122 +249,112 @@ public class Model implements JMC {
 						getInterval(i, vertical): getInterval(vertical, i);
 				Sounding pastIntervalSounding = getSounding(pastInterval);
 				Sounding vertIntervalSounding = getSounding(vertInterval);
+				int distance = getDistance(i, horiz);
 				if(pastIntervalSounding.equals(targetSounding) &&
-						vertIntervalSounding.equals(targetSounding)) {
+						vertIntervalSounding.equals(targetSounding) && 
+						distance <= 9) {
 					awesomeNotes.add(i);
 				}
-				else if(pastIntervalSounding.equals(targetSounding)) {
+				else if(pastIntervalSounding.equals(targetSounding) && distance <= 9) {
 					okayNotes.add(i);
 				}
-				else if(vertIntervalSounding.equals(targetSounding)) {
+				else if(vertIntervalSounding.equals(targetSounding) && distance <= 9) {
 					okayNotes.add(i);
 				}
 			}
-			//get the note closest to the previous note
-			int closestDistance = Integer.MAX_VALUE;
-			int closestNote = -1;
-			for(int i=0; i<awesomeNotes.size(); i++) {
-				int horizNote = awesomeNotes.get(i);
-				int distance = (horiz > horizNote)?
-						horiz-horizNote: horizNote-horiz;
-				if(distance < closestDistance) {
-					closestDistance = distance;
-					closestNote = horizNote;
-				}
+			if(!awesomeNotes.isEmpty()) {
+				int randIndex = r.nextInt(awesomeNotes.size());
+				return awesomeNotes.get(randIndex);
 			}
-			if(closestNote == -1) { //no awesome notes => check okay notes
-				for(int i=0; i<okayNotes.size(); i++) {
-					int horizNote = okayNotes.get(i);
-					int distance = (horiz > horizNote)?
-							horiz-horizNote: horizNote-horiz;
-					if(distance < closestDistance) {
-						closestDistance = distance;
-						closestNote = horizNote;
-					}
-				}
+			else {
+				int randIndex = r.nextInt(okayNotes.size());
+				return okayNotes.get(randIndex);
 			}
-			System.out.println(":) " + closestNote);
-			//try { Thread.sleep(5000); } catch (InterruptedException x) { }
-			//add the closest note
-			return (closestNote > 0) ? closestNote : randomNote;
 		}
-		//know only horizontal note
-		else if(horiz >= 0) {
+		//know only horizontal note and agent is leading
+		else if(horiz >= 0 && ahead) {
+			System.out.println(agentID + " is ahead");
+			try {
+				Thread.sleep(Parameters.CATCHUP_AMOUNT);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			//get soundings of every note
 			ArrayList<Integer> possibleNotes = new ArrayList<Integer>();
 			for(int i=lowerbound, j=0; i<upperbound; i++, j++) {
 				int pastInterval = (i <= horiz)? 
 						getInterval(i, horiz): getInterval(horiz, i);
+				int distance = getDistance(i, horiz);
 				Sounding pastIntervalSounding = getSounding(pastInterval);
-				if(pastIntervalSounding.equals(targetSounding)) {
+				if(pastIntervalSounding.equals(targetSounding) && distance <= 9) {
 					possibleNotes.add(i);
 				}
 			}
-			//get the note closest to the previous note
-			int closestDistance = Integer.MAX_VALUE;
-			int closestNote = -1;
-			for(int i=0; i<possibleNotes.size(); i++) {
-				int horizNote = possibleNotes.get(i);
-				int distance = (horiz > horizNote)?
-						horiz-horizNote: horizNote-horiz;
-				if(distance < closestDistance) {
-					closestDistance = distance;
-					closestNote = horizNote;
-				}
+			if(!possibleNotes.isEmpty()) {
+				int randIndex = r.nextInt(possibleNotes.size());
+				return possibleNotes.get(randIndex);
 			}
-			return (closestNote > 0) ? closestNote : randomNote;
+		}
+		else if(horiz >= 0 && !ahead) {
+			System.out.println(agentID + " is behind");
+			return randomNote;
 		}
 		//know only vertical note
 		else if(vertical >= 0){
-			//get soundings of every note
-			ArrayList<Integer> possibleNotes = new ArrayList<Integer>();
-			for(int i=lowerbound, j=0; i<upperbound; i++, j++) {
-				int vertInterval = (i <= vertical)? 
-						getInterval(i, vertical): getInterval(vertical, i);
-				Sounding vertIntervalSounding = getSounding(vertInterval);
-				if(vertIntervalSounding.equals(targetSounding)) {
-					possibleNotes.add(i);
-				}
-			}
-			//get the note closest to the previous note
-			int closestDistance = Integer.MAX_VALUE;
-			int closestNote = -1;
-			for(int i=0; i<possibleNotes.size(); i++) {
-				int horizNote = possibleNotes.get(i);
-				int distance = (horiz > horizNote)?
-						horiz-horizNote: horizNote-horiz;
-				if(distance < closestDistance) {
-					closestDistance = distance;
-					closestNote = horizNote;
-				}
-			}
-			return (closestNote > 0) ? closestNote : randomNote;
+			System.out.println("this shouldnt execute");
 		}
 		//dont know either.. just pick a random note. Should not come here
 		else {
 			return randomNote;
 		}
-
+		return -1;
 	}
 	
-	ArrayList<Integer> getPastNotes(int agentID) {
+	List<Integer> getPastNotes(int agentID) {
 		ArrayList<Integer> pastNotes = new ArrayList<Integer>();
 		int index;
 		switch(agentID) {
 		case Parameters.BASS: index = bassIndex; break;
-		case Parameters.TENOR: index = tenorIndex; break;
+		case Parameters.TENOR: index = tenorIndex;break;
 		case Parameters.ALTO: index = altoIndex; break;
-		case Parameters.SOPRANO: index = sopranoIndex; break;
+		case Parameters.SOPRANO: index = sopranoIndex;break;
 		default: index = -1;
 		}
 		double dur = 0d;
-		do {
-			Note n = phrases[agentID].getNote(index);
-			pastNotes.add(n.getPitch());
-			dur += n.getDuration();
-			index--;
-		} while(dur < 3.6);
+		try {
+			do {
+				Note n = phrases[agentID].getNote(index);
+				pastNotes.add(n.getPitch());
+				dur += n.getDuration();
+				index--;
+			} while(dur < 7.2-0.001);
+		} catch(Exception e) {}
 		return pastNotes;
+	}
+	
+	List<Double> getPastPositions(int agentID) {
+		ArrayList<Double> pastPositions = new ArrayList<Double>();
+		List<Double> positions;
+		int index;
+		switch(agentID) {
+		case Parameters.BASS: index = bassIndex; positions = bassPositions; break;
+		case Parameters.TENOR: index = tenorIndex; positions = tenorPositions; break;
+		case Parameters.ALTO: index = altoIndex; positions = altoPositions; break;
+		case Parameters.SOPRANO: index = sopranoIndex; positions = sopranoPositions; break;
+		default: index = -1; positions = null;
+		}
+		double dur = 0d;
+		try {
+			do {
+				Double pos = positions.get(index);
+				Note n = phrases[agentID].getNote(index);
+				pastPositions.add(pos);
+				dur += n.getDuration();
+				index--;
+			} while(dur < 7.2-0.001);
+		} catch(Exception e) {}
+		return pastPositions;
 	}
 	
 	double chooseDuration(int agentID) {
