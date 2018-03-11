@@ -102,8 +102,8 @@ public class UserInputWindow extends JFrame {
 	     	    Note n = new Note();
 	     	    n.setPitch((Integer) notes.getSelectedItem());
 	     	    n.setRhythmValue((Double) durations.getSelectedItem(), true);
-	     	    Model.getPhrase(parts.getSelectedIndex()).addNote(n);
-	     	    if(SystemParams.SHOW_COMPOSITION_GUI) Model.refreshView();
+	     	    Model.placeNote(parts.getSelectedIndex(), null, null, -1, true, n);
+	     	    //if(SystemParams.SHOW_COMPOSITION_GUI) Model.refreshView();
 		    }
 	    });
 

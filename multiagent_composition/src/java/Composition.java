@@ -30,7 +30,7 @@ public class Composition extends Environment {
             inputWindow.setVisible(true);
         }
         
-        model = new Model();
+        Model.init();
         updatePercepts();
     }
 
@@ -52,7 +52,7 @@ public class Composition extends Environment {
         if (agName.equals("sopranoAgent")) agentID=AgentParams.SOPRANO;
 
 		//control the speed of agents
-		try { Thread.sleep(SystemParams.AGENT_DELAY); } catch (InterruptedException x) { }
+		//try { Thread.sleep(SystemParams.AGENT_DELAY); } catch (InterruptedException x) { }
         
 		//place note action
     	if (action.getFunctor().equals("placeNote")) {
@@ -72,13 +72,11 @@ public class Composition extends Environment {
             	notes.add(Integer.parseInt(n));
             for(String p : posStrs)
             	positions.add(Double.parseDouble(p));
-    		result = model.placeNote(agentID, notes, positions, position);
+    		result = Model.placeNote(agentID, notes, positions, position, false, null);
     	}
     	//wait action
     	else if(action.getFunctor().equals("wait")) {
-    		Term[] terms = action.getTermsArray();
-    		int waitTime = Integer.parseInt(terms[0].toString());
-    		try { Thread.sleep(waitTime); } catch (InterruptedException x) { }
+    		try { Thread.sleep(SystemParams.AGENT_DELAY); } catch (InterruptedException x) { }
     	}
     	else {	//unknown action
     		System.err.println("!Unknown action " + action.getFunctor() + "!");
@@ -87,9 +85,8 @@ public class Composition extends Environment {
         	System.exit(0);
     	}
     	
-    	if (result) {
+    	if(result)
     		updatePercepts();
-    	}
     	
     	return result;
     }
@@ -100,13 +97,13 @@ public class Composition extends Environment {
     private void updatePercepts() {
     	clearPercepts();
 
-    	updatePercepts(AgentParams.BASS, "bassAgent", model.bassIndex, model.bassPosition);
+    	updatePercepts(AgentParams.BASS, "bassAgent", Model.bassIndex, Model.bassPosition);
     	if(AgentParams.NUM_AGENTS > 1) {
-    		updatePercepts(AgentParams.SOPRANO, "sopranoAgent", model.sopranoIndex, model.sopranoPosition);
+    		updatePercepts(AgentParams.SOPRANO, "sopranoAgent", Model.sopranoIndex, Model.sopranoPosition);
     	}
     	if(AgentParams.NUM_AGENTS == 4) {
-    		updatePercepts(AgentParams.TENOR, "tenorAgent", model.tenorIndex, model.tenorPosition);
-    		updatePercepts(AgentParams.ALTO, "altoAgent", model.altoIndex, model.altoPosition);
+    		updatePercepts(AgentParams.TENOR, "tenorAgent", Model.tenorIndex, Model.tenorPosition);
+    		updatePercepts(AgentParams.ALTO, "altoAgent", Model.altoIndex, Model.altoPosition);
     	}
     }
     
@@ -124,10 +121,10 @@ public class Composition extends Environment {
     	double pos = position;
     	addPercept(agentName, Literal.parseLiteral("position(" + pos + ")"));
     	
-    	List<Integer> pastNotes = model.getPastNotes(agentID);
+    	List<Integer> pastNotes = Model.getPastNotes(agentID);
     	addPercept(agentName, Literal.parseLiteral("pastNotes(" + pastNotes + ")"));
     	
-    	List<Double> pastPositions = model.getPastPositions(agentID);
+    	List<Double> pastPositions = Model.getPastPositions(agentID);
     	addPercept(agentName, Literal.parseLiteral("pastPositions(" + pastPositions + ")"));
     }
 }

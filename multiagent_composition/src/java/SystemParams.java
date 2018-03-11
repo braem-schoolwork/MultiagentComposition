@@ -28,4 +28,6 @@ public final class SystemParams {
 	 * Whether or not to select user input.
 	 */
 	public static final boolean ACCEPT_USER_INPUT = true;
+	
+	public static final ViewType VIEW_TYPE = ViewType.MIDISCORE;
 }

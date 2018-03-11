@@ -1,7 +1,9 @@
 import jm.JMC;
 import jm.music.data.*;
 import jm.util.*;
+import jm.gui.cpn.Notate;
 import jm.gui.show.*;
+import jm.gui.sketch.SketchScore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,59 +15,59 @@ import java.util.Random;
  * the functions that perceive the environment, and the composition GUI window.
  * @author braem
  */
-public class Model implements JMC {
+public final class Model implements JMC {
 	/**
 	 * Current position of the bass agent.
 	 */
-    double bassPosition = 0d;
+	static double bassPosition = 0d;
 	/**
 	 * Current index of the bass phrase.
 	 */
-    int bassIndex = 0;
+	static int bassIndex = 0;
 
 	/**
 	 * Current position of the tenor agent.
 	 */
-    double tenorPosition = 0d;
+	static double tenorPosition = 0d;
 	/**
 	 * Current index of the tenor phrase.
 	 */
-    int tenorIndex = 0;
+	static int tenorIndex = 0;
     
 	/**
 	 * Current position of the alto agent.
 	 */
-    double altoPosition = 0d;
+	static double altoPosition = 0d;
 	/**
 	 * Current index of the alto phrase.
 	 */
-    int altoIndex = 0;
+	static int altoIndex = 0;
 
 	/**
 	 * Current position of the soprano agent.
 	 */
-    double sopranoPosition = 0d;
+	static double sopranoPosition = 0d;
 	/**
 	 * Current index of the soprano phrase.
 	 */
-    int sopranoIndex = 0;
+	static int sopranoIndex = 0;
     
 	/**
 	 * Past positions of the bass agent. Unseeable by the agent
 	 */
-    private List<Double> bassPositions = new ArrayList<Double>();
+	static private List<Double> bassPositions = new ArrayList<Double>();
 	/**
 	 * Past positions of the tenor agent. Unseeable by the agent
 	 */
-    private List<Double> tenorPositions = new ArrayList<Double>();
+	static private List<Double> tenorPositions = new ArrayList<Double>();
 	/**
 	 * Past positions of the alto agent. Unseeable by the agent
 	 */
-    private List<Double> altoPositions = new ArrayList<Double>();
+	static private List<Double> altoPositions = new ArrayList<Double>();
 	/**
 	 * Past positions of the soprano agent. Unseeable by the agent
 	 */
-    private List<Double> sopranoPositions = new ArrayList<Double>();
+	static private List<Double> sopranoPositions = new ArrayList<Double>();
 
 	/**
 	 * Current jMusic composition.
@@ -80,13 +82,27 @@ public class Model implements JMC {
      * Phrases hold the notes. 
      */
     private static Phrase[] phrases = new Phrase[4];
-    /**
-     * Composition GUI
-     */
-    private static ShowScore compositionWindow;
     
-	public Model() {
-		//create parts
+    /**
+     * JFrame object for the notation window.
+     */
+    private static Notate notateWindow;
+    /**
+     * JFrame object for the midi score window.
+     */
+    private static ShowScore showWindow;
+    /**
+     * JFrame object for the sketch window.
+     */
+    private static SketchScore sketchWindow;
+    
+    /**
+     * Method to initialize the class.
+     * Creates the phrases, parts, & score with some initial notes.
+     * Opens the Composition view.
+     */
+    public static void init() {
+    	//create parts
 		Note n1 = new Note(C3, WHOLE_NOTE);
 		Note n2 = new Note(C4, WHOLE_NOTE);
 		Note n3 = new Note(C5, WHOLE_NOTE);
@@ -111,22 +127,43 @@ public class Model implements JMC {
 		sopranoPosition+=n3.getDuration();
 		sopranoPositions.add(n3.getDuration());
 		if(SystemParams.SHOW_COMPOSITION_GUI) openView();
-	}
+    }
 	
 	/**
-	 * Main agent of the agents.
-	 * Places a note in the composition.
+	 * Main action of the agents; places a note in the composition.
+	 * Also used by user to add a note.
 	 * @param agentID		ID of the agent calling this action.
 	 * @param vertNotes		Notes vertical to the agent.
 	 * @param vertPositions	Positions of notes vertical to the agent.
 	 * @param position		Position of the agent.
+	 * @param isUser		Whether or not the user is adding this note
+	 * @param userNote		The note the user wants to add. Unused if isUser is <code>false</code>.
 	 * 
 	 * @return	<code>true</code> if the agent successfully places the note.
 	 * 			<code>false</code> otherwise.
 	 */
-	boolean placeNote(int agentID, List<Integer> vertNotes, List<Double> vertPositions, double position) {
+	synchronized static boolean placeNote(int agentID, List<Integer> vertNotes, List<Double> vertPositions,
+			double position, boolean isUser, Note userNote) {
+		if(isUser) {
+			phrases[agentID].addNote(userNote);
+			switch(agentID) {
+			case AgentParams.BASS: {
+				bassPosition+=userNote.getDuration();
+				bassPositions.add(bassPosition);
+				bassIndex++;
+			} break;
+			case AgentParams.SOPRANO: {
+				sopranoPosition+=userNote.getDuration();
+				sopranoPositions.add(sopranoPosition);
+				sopranoIndex++;
+			} break;
+			}
+			System.out.println("User added note");
+			if(SystemParams.SHOW_COMPOSITION_GUI) refreshView();
+			return true;
+		}
 		int vertNote = getNoteAtCurrentTime(vertNotes, vertPositions, position);
-		//System.out.println(vertNote + ", " + vertNotes);
+		
 		if(isAhead(vertPositions,position))  {
 			System.out.println(agentID + " ahead.. " + position + ", " + vertPositions);
 			if(SystemParams.SHOW_COMPOSITION_GUI) refreshView();
@@ -142,6 +179,11 @@ public class Model implements JMC {
 			nextNote = selectNextNote
 					(agentID, phr.getNote(bassIndex).getPitch(), 
 							vertNote, isAhead(vertPositions, position));
+			if(nextNote == -1) {
+				bassPosition-=duration;
+				bassPositions.remove(bassPositions.size()-1);
+				return false;
+			}
 			bassIndex++;
 		} break;
 		case AgentParams.TENOR: {
@@ -166,6 +208,11 @@ public class Model implements JMC {
 			nextNote = selectNextNote
 					(agentID, phr.getNote(sopranoIndex).getPitch(), 
 							vertNote, isAhead(vertPositions, position));
+			if(nextNote == -1) {
+				sopranoPosition-=duration;
+				sopranoPositions.remove(sopranoPositions.size()-1);
+				return false;
+			}
 			sopranoIndex++;
 		} break;
 		default: nextNote = -1;
@@ -177,7 +224,10 @@ public class Model implements JMC {
 			System.out.println("Agent " + agentID + " selects note "+n);
 			return true;
 		}
-		else return false;
+		else {
+			System.exit(1);
+			return false;
+		}
 	}
 	
 	/**
@@ -194,7 +244,7 @@ public class Model implements JMC {
 	 * 
 	 * @return			The selected note to be placed.
 	 */
-	int selectNextNote(int agentID, int horiz, int vertical, boolean ahead) {
+	static int selectNextNote(int agentID, int horiz, int vertical, boolean ahead) {
 		//get lower and upper bounds of the part
 		int upperbound, lowerbound;
 		int[] partBounds = getPartBounds(agentID);
@@ -212,6 +262,7 @@ public class Model implements JMC {
 		Random r = new Random();
 		//know horizontal and vertical notes
 		if(horiz >= 0 && vertical >= 0) {
+			System.out.println("GOOD DECISION :D");
 			//get soundings of every note
 			ArrayList<Integer> awesomeNotes = new ArrayList<Integer>();
 			ArrayList<Integer> okayNotes = new ArrayList<Integer>();
@@ -245,7 +296,7 @@ public class Model implements JMC {
 			}
 		}
 		else if(horiz >= 0 && !ahead) {
-			System.out.println(agentID + " is behind");
+			System.out.println("Making okay decision");
 			ArrayList<Integer> possibleNotes = new ArrayList<Integer>();
 			for(int i=lowerbound; i<upperbound; i++) {
 				int pastInterval = (i <= horiz)? 
@@ -272,7 +323,7 @@ public class Model implements JMC {
 	 * @param agentID	ID of the agent
 	 * @return			The list of past notes in the percept length
 	 */
-	List<Integer> getPastNotes(int agentID) {
+	static List<Integer> getPastNotes(int agentID) {
 		ArrayList<Integer> pastNotes = new ArrayList<Integer>();
 		int index;
 		switch(agentID) {
@@ -302,7 +353,7 @@ public class Model implements JMC {
 	 * @param agentID	ID of the agent
 	 * @return			The list of past positions in the percept length
 	 */
-	List<Double> getPastPositions(int agentID) {
+	static List<Double> getPastPositions(int agentID) {
 		ArrayList<Double> pastPositions = new ArrayList<Double>();
 		List<Double> positions;
 		int index;
@@ -358,7 +409,7 @@ public class Model implements JMC {
 	 * @param agentID	ID of the agent running this
 	 * @return			selected duration value
 	 */
-	private double chooseDuration(int agentID) {
+	private static double chooseDuration(int agentID) {
 		double[] probs = new double[MusicParams.NUM_DURATIONS];
 		if(agentID == AgentParams.BASS) {
 			probs[0] = MusicParams.BASS_PROB_WHOLE;
@@ -400,7 +451,7 @@ public class Model implements JMC {
 	 * @param position		Position of the agent.
 	 * @return				The note occurring at the position of the agent.
 	 */
-	private int getNoteAtCurrentTime(List<Integer> vertNotes, List<Double> vertPositions, double position) {
+	private static int getNoteAtCurrentTime(List<Integer> vertNotes, List<Double> vertPositions, double position) {
 		if(vertNotes.size() == 1) return vertNotes.get(0);
 		if(vertNotes.size() != vertPositions.size()) return -1;
 		for(int i=0; i<vertNotes.size()-1; i++) {
@@ -420,8 +471,8 @@ public class Model implements JMC {
 	 * @return		<code>true</code> if the agent is ahead of all notes vertical to it.
 	 * 				<code>false</code> otherwise.
 	 */
-	private boolean isAhead(List<Double> vertPositions, double position) {
-		return (position > vertPositions.get(0) );
+	private static boolean isAhead(List<Double> vertPositions, double position) {
+		return (position > vertPositions.get(0));
 	}
 	
 	/**
@@ -430,7 +481,7 @@ public class Model implements JMC {
 	 * @param upper	Upper note.
 	 * @return		Interval ID of lower by upper note.
 	 */
-	private int getInterval(int lower, int upper) {
+	private static int getInterval(int lower, int upper) {
 		return (upper-lower)%12;
 	}
 	
@@ -440,7 +491,7 @@ public class Model implements JMC {
 	 * @param n2	Note 2.
 	 * @return		Absolute value of the difference of the notes.
 	 */
-	private int getDistance(int n1, int n2) {
+	private static int getDistance(int n1, int n2) {
 		return Math.abs(n2-n1);
 	}
 	
@@ -449,7 +500,7 @@ public class Model implements JMC {
 	 * @param intervalID	ID of the interval.
 	 * @return				Sounding of the interval ID.
 	 */
-	private Sounding getSounding(int intervalID) {
+	private static Sounding getSounding(int intervalID) {
 		switch(intervalID) {
 		case MusicParams.UNISON: return Sounding.PERFECT_CONSONANCE;
 		case MusicParams.m2nd: return Sounding.SHARP_DISSONANCE;
@@ -476,7 +527,7 @@ public class Model implements JMC {
 	 * @return		An array of size 2 where the first element is the lower bound
 	 * 				and the second element is the upper bound.
 	 */
-	private int[] getPartBounds(int agentID) {
+	private static int[] getPartBounds(int agentID) {
 		switch(agentID) {
 		case AgentParams.BASS: 
 			return new int[] {MusicParams.BASS_LOWER, MusicParams.BASS_UPPER};
@@ -501,9 +552,23 @@ public class Model implements JMC {
 		}
 		composition.removeAllParts();
 		composition.addPartList(parts);
-		compositionWindow = new ShowScore(composition);
-		compositionWindow.setFocusable(false);
-		compositionWindow.setFocusableWindowState(false);
+		switch(SystemParams.VIEW_TYPE) {
+		case NOTATION: {
+			notateWindow = new Notate(composition, 0, 0);
+			notateWindow.setFocusable(false);
+			notateWindow.setFocusableWindowState(false);
+		} break;
+		case MIDISCORE: {
+			showWindow = new ShowScore(composition, 0, 0);
+			showWindow.setFocusable(false);
+			showWindow.setFocusableWindowState(false);
+		} break;
+		case SKETCH: {
+			sketchWindow = new SketchScore(composition, 0, 0);
+			sketchWindow.setFocusable(false);
+			sketchWindow.setFocusableWindowState(false);
+		} break;
+		}
 	}
 	
 	/**
@@ -511,8 +576,19 @@ public class Model implements JMC {
 	 * disposing and re-opening the view.
 	 */
 	static void refreshView() {
-		compositionWindow.dispose();
-		openView();
+		switch(SystemParams.VIEW_TYPE) {
+		case NOTATION: {
+			notateWindow.dispose();
+			openView();
+		} break;
+		case MIDISCORE: {
+			showWindow.dispose();
+			openView();
+		} break;
+		case SKETCH: {
+			sketchWindow.update();
+		} break;
+		}
 	}
 	
 	/**
