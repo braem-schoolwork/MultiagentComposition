@@ -2,11 +2,21 @@
 myturn.
 
 //Goal
-!place.
+!ask.
 
 //place note action
-+!place:	not vertNotes(_, _) & myturn
-<-			.send(sopranoAgent, achieve, gimme);
++!ask:	myturn
+<-		.send(sopranoAgent, achieve, gimme); 
+		//.print("Telling them to gimme!"); 
+		wait;
+.
+
++!ask:	~myturn <- //.print("not my turn!");
+		!ask
+.
+
+-!ask<-		//.print("asking again..");
+			!ask
 .
 
 +!place:	prevNote(X) & position(Y) & pastNotes(Z) 
@@ -15,41 +25,30 @@ myturn.
 			//			"past notes: ",Z, "vert notes: ",W,
 			//			"vert note positions: ", L);
 			placeNote(W, L, Y);
+			//.print("placed!");
+			//wait(1000);
 			-vertNotes(W, L)[source(sopranoAgent)];
 			-+~myturn;
-			!place
 .
 
-+!place:	~myturn & vertNotes(W, L)[source(sopranoAgent)]
-<-			-vertNotes(W, L)[source(sopranoAgent)];
-			!place;
++!place:	myturn
+<-			!place;
+.
+
++!place:	~myturn
+<-			.print("Its not my turn though");
 .
 
 -!place<-	-+~myturn;
-			.send(sopranoAgent, unachieve, place);
-			!forgetVertNotes;
-			!tellnotes;
-			.send(sopranoAgent, tell, myturn);
-			.send(sopranoAgent, achieve, place);
-			!gimme;
-.
-
-+!forgetVertNotes: 	vertNotes(W, L)[source(sopranoAgent)]
-<- 					-vertNotes(W, L)[source(sopranoAgent)];
-.
-
-+!tellnotes:pastNotes(X) & pastPositions(Y) 
-<-
-			.send(sopranoAgent, tell, vertNotes(X, Y));
+			//.print("I failed, no longer my turn");
+			//.send(sopranoAgent, achieve, ask);
 .
 
 +!gimme:	pastNotes(X) & pastPositions(Y)
-<-			//.print(X);
+<-			//.print("Giving..");
 			.send(sopranoAgent, tell, vertNotes(X, Y));
-			-+myturn;
 			.send(sopranoAgent, achieve, place);
-			!place
+			//.print("Now my turn");
+			-+myturn;
 .
 
--!gimme<-	.print("Failed gimme somehow");
-.
