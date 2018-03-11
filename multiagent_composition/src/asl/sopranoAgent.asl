@@ -27,15 +27,15 @@
 
 -!place<-	-+~myturn;
 			.send(bassAgent, unachieve, place);
+			!forgetVertNotes;
 			!tellnotes;
 			.send(bassAgent, tell, myturn);
 			.send(bassAgent, achieve, place);
 			!gimme;
 .
 
-+!tellnotes:pastNotes(X) & pastPositions(Y) & vertNotes(W, L)[source(bassAgent)]
-<-			-vertNotes(W, L)[source(bassAgent)];
-			.send(bassAgent, tell, vertNotes(X, Y));
++!forgetVertNotes: 	vertNotes(W, L)[source(bassAgent)]
+<- 					-vertNotes(W, L)[source(bassAgent)];
 .
 
 +!tellnotes:pastNotes(X) & pastPositions(Y) 

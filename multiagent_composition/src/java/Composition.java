@@ -1,55 +1,60 @@
 import jason.asSyntax.*;
 import jason.environment.*;
-import jason.environment.grid.Location;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.logging.*;
 
-import jm.JMC;
-import jm.music.data.*;
-import jm.util.*;
-
+/**
+ * This is the environment of the system, which is a composition.
+ * This deals with agent agents and perceptions by using Model.java.
+ * @author braem
+ */
 public class Composition extends Environment {
-	private Logger logger = Logger.getLogger("MAC"+Composition.class.getName());
     
+	/**
+	 * Associated model of the system
+	 */
     static Model model;
     
-    /** Called before the MAS execution with the args informed in .mas2j */
     @Override
     public void init(String[] args) {
         super.init(args);
-        //make user input window
-        if(Parameters.USER_INPUT) {
+        if(!MusicParams.isValidParameters()) {
+        	System.err.println("!Invalid Parameters!");
+        	System.err.println("Program Terminating in 5 seconds..");
+        	try { Thread.sleep(5000); } catch (InterruptedException x) { }
+        	System.exit(0);
+        }
+        if(SystemParams.ACCEPT_USER_INPUT) {
             UserInputWindow inputWindow = new UserInputWindow();
             inputWindow.setVisible(true);
         }
+        
         model = new Model();
         updatePercepts();
     }
 
-    /** Called before the end of MAS execution */
     @Override
     public void stop() {
-    	//write composition to midi
     	Model.writeToMIDI();
         super.stop();
     }
 
     @Override
     public boolean executeAction(String agName, Structure action) {
-        
     	boolean result = false;
+    	
+    	//get ID of agent executing the action
     	int agentID = -1;
-        if (agName.equals("bassAgent")) agentID=Parameters.BASS;
-        if (agName.equals("tenorAgent")) agentID=Parameters.TENOR;
-        if (agName.equals("altoAgent")) agentID=Parameters.ALTO;
-        if (agName.equals("sopranoAgent")) agentID=Parameters.SOPRANO;
+        if (agName.equals("bassAgent")) agentID=AgentParams.BASS;
+        if (agName.equals("tenorAgent")) agentID=AgentParams.TENOR;
+        if (agName.equals("altoAgent")) agentID=AgentParams.ALTO;
+        if (agName.equals("sopranoAgent")) agentID=AgentParams.SOPRANO;
 
 		//control the speed of agents
-		try { Thread.sleep(Parameters.SLEEP_AMOUNT); } catch (InterruptedException x) { }
+		try { Thread.sleep(SystemParams.AGENT_DELAY); } catch (InterruptedException x) { }
         
+		//place note action
     	if (action.getFunctor().equals("placeNote")) {
     		List<Integer> notes = new ArrayList<Integer>();
             List<Double> positions = new ArrayList<Double>();
@@ -69,13 +74,18 @@ public class Composition extends Environment {
             	positions.add(Double.parseDouble(p));
     		result = model.placeNote(agentID, notes, positions, position);
     	}
+    	//wait action
     	else if(action.getFunctor().equals("wait")) {
     		Term[] terms = action.getTermsArray();
     		int waitTime = Integer.parseInt(terms[0].toString());
     		try { Thread.sleep(waitTime); } catch (InterruptedException x) { }
     	}
-    	else
-    		logger.info("executing: "+action+", but not implemented!");
+    	else {	//unknown action
+    		System.err.println("!Unknown action " + action.getFunctor() + "!");
+    		System.err.println("Shutting down in 5 seconds..");
+    		try { Thread.sleep(5000); } catch (InterruptedException x) { }
+        	System.exit(0);
+    	}
     	
     	if (result) {
     		updatePercepts();
@@ -84,34 +94,40 @@ public class Composition extends Environment {
     	return result;
     }
     
+    /**
+     * Updates perceptions of ALL agents
+     */
     private void updatePercepts() {
     	clearPercepts();
 
-    	int note = Model.phrases[Parameters.BASS].getNote(model.bassIndex).getPitch();
-    	addPercept("bassAgent", Literal.parseLiteral("prevNote(" + note + ")"));
-    	
-    	double pos = model.bassPosition;
-    	addPercept("bassAgent", Literal.parseLiteral("position(" + pos + ")"));
-    	
-    	List<Integer> pastNotes = model.getPastNotes(Parameters.BASS);
-    	addPercept("bassAgent", Literal.parseLiteral("pastNotes(" + pastNotes + ")"));
-    	
-    	List<Double> pastPositions = model.getPastPositions(Parameters.BASS);
-    	addPercept("bassAgent", Literal.parseLiteral("pastPositions(" + pastPositions + ")"));
-    	
-    	if(Parameters.NUM_AGENTS > 1) {
-    		note = Model.phrases[Parameters.SOPRANO].getNote(model.sopranoIndex).getPitch();
-        	addPercept("sopranoAgent", Literal.parseLiteral("prevNote(" + note + ")"));
-        	
-        	pos = model.sopranoPosition;
-        	addPercept("sopranoAgent", Literal.parseLiteral("position(" + pos + ")"));
-        	
-        	pastNotes = model.getPastNotes(Parameters.SOPRANO);
-        	addPercept("sopranoAgent", Literal.parseLiteral("pastNotes(" + pastNotes + ")"));
-        	
-        	pastPositions = model.getPastPositions(Parameters.SOPRANO);
-        	addPercept("sopranoAgent", Literal.parseLiteral("pastPositions(" + pastPositions + ")"));
+    	updatePercepts(AgentParams.BASS, "bassAgent", model.bassIndex, model.bassPosition);
+    	if(AgentParams.NUM_AGENTS > 1) {
+    		updatePercepts(AgentParams.SOPRANO, "sopranoAgent", model.sopranoIndex, model.sopranoPosition);
     	}
+    	if(AgentParams.NUM_AGENTS == 4) {
+    		updatePercepts(AgentParams.TENOR, "tenorAgent", model.tenorIndex, model.tenorPosition);
+    		updatePercepts(AgentParams.ALTO, "altoAgent", model.altoIndex, model.altoPosition);
+    	}
+    }
+    
+    /**
+     * Update perception of a single agent.
+     * @param agentID		ID of the agent.
+     * @param agentName		Name of the agent.
+     * @param index			Index of phrase corresponding to the agent.
+     * @param position		Position of the agent.
+     */
+    private void updatePercepts(int agentID, String agentName, int index, double position) {
+    	int note = Model.getPhrase(agentID).getNote(index).getPitch();
+    	addPercept(agentName, Literal.parseLiteral("prevNote(" + note + ")"));
     	
+    	double pos = position;
+    	addPercept(agentName, Literal.parseLiteral("position(" + pos + ")"));
+    	
+    	List<Integer> pastNotes = model.getPastNotes(agentID);
+    	addPercept(agentName, Literal.parseLiteral("pastNotes(" + pastNotes + ")"));
+    	
+    	List<Double> pastPositions = model.getPastPositions(agentID);
+    	addPercept(agentName, Literal.parseLiteral("pastPositions(" + pastPositions + ")"));
     }
 }
