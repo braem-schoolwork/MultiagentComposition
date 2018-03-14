@@ -1,7 +1,7 @@
 
 /**
  * Holds the system parameters.
- * @author braem
+ * @author braem 
  */
 public final class SystemParams {
 	/**
@@ -15,9 +15,16 @@ public final class SystemParams {
 	public static final double WHOLE_NOTE_DURATION = 3.6;
 	/**
 	 * Length of the perception of the agent.
-	 * Measured in jMusic note durations
+	 * Measured in jMusic note durations.
 	 */
 	public static final double PERCEPT_LENGTH = WHOLE_NOTE_DURATION - 0.001;
+	/**
+	 * How far behind an agent needs to be to be considered lagging.
+	 * Measured in jMusic note durations.
+	 * A larger value means that an agent is more likely going to have to make
+	 * decisions only on their perception, but blocks the other agents less.
+	 */
+	public static final double LAGGING_LENGTH = PERCEPT_LENGTH/4;
 	
 	/**
 	 * Whether or not to show the Composition in a GUI.

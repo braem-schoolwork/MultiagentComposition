@@ -465,14 +465,14 @@ public final class Model implements JMC {
 	}
 	
 	/**
-	 * Figures out whether position is greater than all vertical positions
+	 * Figures out whether an agent is too far ahead, meaning that the other agents are lagging.
 	 * @param vertPositions	Positions of notes vertical to the agent.
 	 * @param position		Position of the agent.
 	 * @return		<code>true</code> if the agent is ahead of all notes vertical to it.
 	 * 				<code>false</code> otherwise.
 	 */
 	private static boolean isAhead(List<Double> vertPositions, double position) {
-		return (position > vertPositions.get(0));
+		return (position-SystemParams.LAGGING_LENGTH > vertPositions.get(0));
 	}
 	
 	/**
