@@ -7,7 +7,7 @@ public final class MusicParams {
 	/**
 	 * Beats per minute of the composition
 	 */
-	public static final byte BPM = 100;
+	public static byte BPM = 100;
 	
 	/**
 	 * Interval ID for a unison interval.
@@ -66,19 +66,19 @@ public final class MusicParams {
 	/**
 	 * Probability of selecting a note that gives a perfect consonance.
 	 */
-	public static final double PC_PROB = 0.04;
+	public static double PC_PROB = 0.04;
 	/**
 	 * Probability of selecting a note that gives an imperfect consonance.
 	 */
-	public static final double IC_PROB = 0.9;
+	public static double IC_PROB = 0.9;
 	/**
 	 * Probability of selecting a note that gives a mild dissonance.
 	 */
-	public static final double MD_PROB = 0.04;
+	public static double MD_PROB = 0.04;
 	/**
 	 * Probability of selecting a note that gives a sharp dissonance.
 	 */
-	public static final double SD_PROB = 0.02;
+	public static double SD_PROB = 0.02;
 	
 	/**
 	 * Number of Different Durations.
@@ -127,86 +127,86 @@ public final class MusicParams {
 	/**
 	 * Probability of the bass part selecting a whole note.
 	 */
-	public static final double BASS_PROB_WHOLE 		= 0.1;
+	public static double BASS_PROB_WHOLE 		= 0.1;
 	/**
 	 * Probability of the bass part selecting a half note.
 	 */
-	public static final double BASS_PROB_HALF		= 0.1;
+	public static double BASS_PROB_HALF		= 0.1;
 	/**
 	 * Probability of the bass part selecting a quarter note.
 	 */
-	public static final double BASS_PROB_QUARTER 	= 0.7;
+	public static double BASS_PROB_QUARTER 	= 0.7;
 	/**
 	 * Probability of the bass part selecting an 8th note.
 	 */
-	public static final double BASS_PROB_8TH 		= 0.1;
+	public static double BASS_PROB_8TH 		= 0.1;
 	/**
 	 * Probability of the bass part selecting a 16th note.
 	 */
-	public static final double BASS_PROB_16TH		= 0;
+	public static double BASS_PROB_16TH		= 0;
 
 	/**
 	 * Probability of the tenor part selecting a whole note.
 	 */
-	public static final double TENOR_PROB_WHOLE 	= 0.05;
+	public static double TENOR_PROB_WHOLE 	= 0.05;
 	/**
 	 * Probability of the tenor part selecting a half note.
 	 */
-	public static final double TENOR_PROB_HALF		= 0.1;
+	public static double TENOR_PROB_HALF		= 0.1;
 	/**
 	 * Probability of the tenor part selecting a quarter note.
 	 */
-	public static final double TENOR_PROB_QUARTER 	= 0.4;
+	public static double TENOR_PROB_QUARTER 	= 0.4;
 	/**
 	 * Probability of the tenor part selecting an 8th note.
 	 */
-	public static final double TENOR_PROB_8TH 		= 0.4;
+	public static double TENOR_PROB_8TH 		= 0.4;
 	/**
 	 * Probability of the tenor part selecting a 16th note.
 	 */
-	public static final double TENOR_PROB_16TH 		= 0.05;
+	public static double TENOR_PROB_16TH 		= 0.05;
 
 	/**
 	 * Probability of the alto part selecting a whole note.
 	 */
-	public static final double ALTO_PROB_WHOLE 		= 0.05;
+	public static double ALTO_PROB_WHOLE 		= 0.05;
 	/**
 	 * Probability of the alto part selecting a half note.
 	 */
-	public static final double ALTO_PROB_HALF		= 0.1;
+	public static double ALTO_PROB_HALF		= 0.1;
 	/**
 	 * Probability of the alto part selecting a quarter note.
 	 */
-	public static final double ALTO_PROB_QUARTER 	= 0.4;
+	public static double ALTO_PROB_QUARTER 	= 0.4;
 	/**
 	 * Probability of the alto part selecting an 8th note.
 	 */
-	public static final double ALTO_PROB_8TH 		= 0.4;
+	public static double ALTO_PROB_8TH 		= 0.4;
 	/**
 	 * Probability of the alto part selecting a 16th note.
 	 */
-	public static final double ALTO_PROB_16TH		= 0.05;
+	public static double ALTO_PROB_16TH		= 0.05;
 
 	/**
 	 * Probability of the soprano part selecting a whole note.
 	 */
-	public static final double SOPRANO_PROB_WHOLE 	= 0;
+	public static double SOPRANO_PROB_WHOLE 	= 0;
 	/**
 	 * Probability of the soprano part selecting a half note.
 	 */
-	public static final double SOPRANO_PROB_HALF 	= 0.1;
+	public static double SOPRANO_PROB_HALF 	= 0.1;
 	/**
 	 * Probability of the soprano part selecting a quarter note.
 	 */
-	public static final double SOPRANO_PROB_QUARTER = 0.2;
+	public static double SOPRANO_PROB_QUARTER = 0.2;
 	/**
 	 * Probability of the soprano part selecting an 8th note.
 	 */
-	public static final double SOPRANO_PROB_8TH		= 0.5;
+	public static double SOPRANO_PROB_8TH		= 0.5;
 	/**
 	 * Probability of the soprano part selecting a 16th note.
 	 */
-	public static final double SOPRANO_PROB_16TH	= 0.2;
+	public static double SOPRANO_PROB_16TH	= 0.2;
 	
 	/**
 	 * Verifies that the parameters set here are valid.

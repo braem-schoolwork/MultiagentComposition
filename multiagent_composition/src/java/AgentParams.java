@@ -7,7 +7,7 @@ public final class AgentParams {
 	/**
 	 * Number of Agents in the system.
 	 */
-	public static final byte NUM_AGENTS = 2;
+	public static byte NUM_AGENTS = 2;
 	
 	/**
 	 * ID for bass part.

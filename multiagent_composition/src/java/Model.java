@@ -53,19 +53,19 @@ public final class Model implements JMC {
 	static int sopranoIndex = 0;
     
 	/**
-	 * Past positions of the bass agent. Unseeable by the agent
+	 * Past positions of the bass agent. Unseeable by the agent.
 	 */
 	static private List<Double> bassPositions = new ArrayList<Double>();
 	/**
-	 * Past positions of the tenor agent. Unseeable by the agent
+	 * Past positions of the tenor agent. Unseeable by the agent.
 	 */
 	static private List<Double> tenorPositions = new ArrayList<Double>();
 	/**
-	 * Past positions of the alto agent. Unseeable by the agent
+	 * Past positions of the alto agent. Unseeable by the agent.
 	 */
 	static private List<Double> altoPositions = new ArrayList<Double>();
 	/**
-	 * Past positions of the soprano agent. Unseeable by the agent
+	 * Past positions of the soprano agent. Unseeable by the agent.
 	 */
 	static private List<Double> sopranoPositions = new ArrayList<Double>();
 
@@ -98,7 +98,7 @@ public final class Model implements JMC {
     
     /**
      * Method to initialize the class.
-     * Creates the phrases, parts, & score with some initial notes.
+     * Creates the phrases, parts, and score with some initial notes.
      * Opens the Composition view.
      */
     public static void init() {
@@ -106,24 +106,24 @@ public final class Model implements JMC {
 		Note n1 = new Note(C3, WHOLE_NOTE);
 		Note n2 = new Note(C4, WHOLE_NOTE);
 		Note n3 = new Note(C5, WHOLE_NOTE);
-		parts[0] = new Part("Bass", PIANO, 0);
-		phrases[0] = new Phrase("BassPhrase", 0.0);
-		phrases[0].addNote(n1);
+		parts[AgentParams.BASS] = new Part("Bass Agent", PIANO, 0);
+		phrases[AgentParams.BASS] = new Phrase("BassPhrase", 0.0);
+		phrases[AgentParams.BASS].addNote(n1);
 		bassPosition+=n1.getDuration();
 		bassPositions.add(n1.getDuration());
-		parts[1] = new Part("Viola", PIANO, 0);
-		phrases[1] = new Phrase("TenorPhrase", 0.0);
-		phrases[1].addNote(n2);
+		parts[AgentParams.TENOR] = new Part("Tenor Agent", PIANO, 0);
+		phrases[AgentParams.TENOR] = new Phrase("TenorPhrase", 0.0);
+		phrases[AgentParams.TENOR].addNote(n2);
 		tenorPosition+=n2.getDuration();
 		tenorPositions.add(n2.getDuration());
-		parts[2] = new Part("Violin 2", PIANO, 0);
-		phrases[2] = new Phrase("AltoPhrase", 0.0);
-		phrases[2].addNote(n2);
+		parts[AgentParams.ALTO] = new Part("Alto Agent", PIANO, 0);
+		phrases[AgentParams.ALTO] = new Phrase("AltoPhrase", 0.0);
+		phrases[AgentParams.ALTO].addNote(n2);
 		altoPosition+=n2.getDuration();
 		altoPositions.add(n2.getDuration());
-		parts[3] = new Part("Violin 1", PIANO, 0);
-		phrases[3] = new Phrase("SopranoPhrase", 0.0);
-		phrases[3].addNote(n3);
+		parts[AgentParams.SOPRANO] = new Part("Soprano Agent", PIANO, 0);
+		phrases[AgentParams.SOPRANO] = new Phrase("SopranoPhrase", 0.0);
+		phrases[AgentParams.SOPRANO].addNote(n3);
 		sopranoPosition+=n3.getDuration();
 		sopranoPositions.add(n3.getDuration());
 		if(SystemParams.SHOW_COMPOSITION_GUI) openView();
@@ -136,7 +136,7 @@ public final class Model implements JMC {
 	 * @param vertNotes		Notes vertical to the agent.
 	 * @param vertPositions	Positions of notes vertical to the agent.
 	 * @param position		Position of the agent.
-	 * @param isUser		Whether or not the user is adding this note
+	 * @param isUser		Whether or not the user is adding this note.
 	 * @param userNote		The note the user wants to add. Unused if isUser is <code>false</code>.
 	 * 
 	 * @return	<code>true</code> if the agent successfully places the note.
@@ -144,6 +144,8 @@ public final class Model implements JMC {
 	 */
 	synchronized static boolean placeNote(int agentID, List<Integer> vertNotes, List<Double> vertPositions,
 			double position, boolean isUser, Note userNote) {
+		
+		//if the note being placed is from the user, just place it
 		if(isUser) {
 			phrases[agentID].addNote(userNote);
 			switch(agentID) {
@@ -162,10 +164,11 @@ public final class Model implements JMC {
 			if(SystemParams.SHOW_COMPOSITION_GUI) refreshView();
 			return true;
 		}
-		int vertNote = getNoteAtCurrentTime(vertNotes, vertPositions, position);
 		
-		if(isAhead(vertPositions,position))  {
-			System.out.println(agentID + " ahead.. " + position + ", " + vertPositions);
+		//agent is trying to place a note
+		int vertNote = getNoteAtCurrentTime(vertNotes, vertPositions, position);
+		if(isAhead(vertPositions,position))  {	//if agent is too far ahead, action fails
+			//System.out.println(agentID + "is ahead.. " + position + ", " + vertPositions);
 			if(SystemParams.SHOW_COMPOSITION_GUI) refreshView();
 			return false;
 		}
@@ -224,7 +227,7 @@ public final class Model implements JMC {
 			System.out.println("Agent " + agentID + " selects note "+n);
 			return true;
 		}
-		else {
+		else {	//couldn't find a good next note. Should never come here
 			System.exit(1);
 			return false;
 		}
@@ -262,7 +265,7 @@ public final class Model implements JMC {
 		Random r = new Random();
 		//know horizontal and vertical notes
 		if(horiz >= 0 && vertical >= 0) {
-			System.out.println("GOOD DECISION :D");
+			//System.out.println("GOOD DECISION :D");
 			//get soundings of every note
 			ArrayList<Integer> awesomeNotes = new ArrayList<Integer>();
 			ArrayList<Integer> okayNotes = new ArrayList<Integer>();
@@ -296,7 +299,7 @@ public final class Model implements JMC {
 			}
 		}
 		else if(horiz >= 0 && !ahead) {
-			System.out.println("Making okay decision");
+			//System.out.println("Making okay decision");
 			ArrayList<Integer> possibleNotes = new ArrayList<Integer>();
 			for(int i=lowerbound; i<upperbound; i++) {
 				int pastInterval = (i <= horiz)? 
@@ -381,6 +384,18 @@ public final class Model implements JMC {
 	 * Writes the composition to a MIDI file.
 	 */
 	static void writeToMIDI() {
+		parts[AgentParams.BASS].removeAllPhrases();
+		parts[AgentParams.BASS].add(phrases[AgentParams.BASS]);
+		if(AgentParams.NUM_AGENTS > 1) {
+			parts[AgentParams.SOPRANO].removeAllPhrases();
+			parts[AgentParams.SOPRANO].add(phrases[AgentParams.SOPRANO]);
+		}
+		else if(AgentParams.NUM_AGENTS == 4) {
+			parts[AgentParams.TENOR].removeAllPhrases();
+			parts[AgentParams.TENOR].add(phrases[AgentParams.TENOR]);
+			parts[AgentParams.ALTO].removeAllPhrases();
+			parts[AgentParams.ALTO].add(phrases[AgentParams.ALTO]);
+		}
 		for(int i=0; i<parts.length; i++) {
 			parts[i].removeAllPhrases();
 			parts[i].add(phrases[i]);
@@ -396,10 +411,16 @@ public final class Model implements JMC {
 	 * @return	Reversed this.parts array.
 	 */
 	private static Part[] reverseParts() {
-		Part[] reversedParts = new Part[4];
-		for(int i=parts.length-1, j=0; i>=0; i--, j++) {
-			reversedParts[i] = parts[j];
+		Part[] reversedParts = new Part[AgentParams.NUM_AGENTS];
+		if(AgentParams.NUM_AGENTS == 1) 
+			reversedParts[0] = parts[0];
+		else if(AgentParams.NUM_AGENTS == 2) {
+			reversedParts[0] = parts[3];
+			reversedParts[1] = parts[0];
 		}
+		else if(AgentParams.NUM_AGENTS == 4)
+			for(int i=AgentParams.NUM_AGENTS-1, j=0; i>=0; i--, j++) 
+				reversedParts[i] = parts[j];
 		return reversedParts;
 	}
 	

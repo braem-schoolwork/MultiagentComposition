@@ -19,6 +19,7 @@ public class Composition extends Environment {
     @Override
     public void init(String[] args) {
         super.init(args);
+        SettingsLoader.load();
         if(!MusicParams.isValidParameters()) {
         	System.err.println("!Invalid Parameters!");
         	System.err.println("Program Terminating in 5 seconds..");
@@ -101,7 +102,7 @@ public class Composition extends Environment {
     	if(AgentParams.NUM_AGENTS > 1) {
     		updatePercepts(AgentParams.SOPRANO, "sopranoAgent", Model.sopranoIndex, Model.sopranoPosition);
     	}
-    	if(AgentParams.NUM_AGENTS == 4) {
+    	else if(AgentParams.NUM_AGENTS == 4) {
     		updatePercepts(AgentParams.TENOR, "tenorAgent", Model.tenorIndex, Model.tenorPosition);
     		updatePercepts(AgentParams.ALTO, "altoAgent", Model.altoIndex, Model.altoPosition);
     	}
