@@ -7,3 +7,5 @@ See report/report.pdf for a description of this project.
 See multiagent_composition/ for the source code.
 
 See executable/ for a .jar of this project.
+
+See doc/ for this project's Javadocs
