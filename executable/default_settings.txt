@@ -14,7 +14,7 @@ MIDISCORE
 
 *****ARGUMENTS******
  *
- * arg0:	Number of agents. Only 1 or 2 is supported.
+ * arg0:	Number of agents. Changing this will crash the program.
  * 		Default: 2
  * 
  * arg1: 	Delay of agents, in MS.
